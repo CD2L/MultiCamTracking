@@ -1,0 +1,4 @@
+dataset_path: ../Market-1501-v15.09.15/query
+num_epochs: 10
+batch_size: 200
+lr: 0.0001
