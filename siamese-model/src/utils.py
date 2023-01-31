@@ -2,9 +2,12 @@ import math
 import numpy as np
 from tqdm import tqdm
 import yaml
+import os
+import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
+import cv2 as cv
 
 with open("args.yml", "r") as f:
     args = yaml.safe_load(f)
@@ -51,7 +54,7 @@ def train(epoch, model, loss_fn, dataloader, optimizer, device):
     
     for batch_idx, (anc, pos, neg) in enumerate(tqdm(dataloader)):
         anc, pos, neg = anc.to(device), pos.to(device), neg.to(device)
-        
+
         out_anc, out_pos, out_neg = model(anc, pos, neg)
         optimizer.zero_grad()
         loss = loss_fn(out_anc, out_pos, out_neg).unsqueeze(0)
@@ -79,7 +82,7 @@ def test(model, loss_fn, dataloader, device):
         with torch.no_grad():
             out = model(anc,pos,neg)
 
-            loss = loss_fn(**out)
+            loss = loss_fn(*out)
             test_loss = loss.item()
 
     test_loss /= len(dataloader)
@@ -90,3 +93,31 @@ def test(model, loss_fn, dataloader, device):
     )
 
     return test_loss
+
+def save_example(epoch, x,y,z):
+    x = x.permute(0,2,3,1)
+    y = y.permute(0,2,3,1)
+    z = z.permute(0,2,3,1)
+
+    fig, axes = plt.subplots(nrows=len(x), ncols=3)
+    fig.tight_layout
+    
+    axes[0][0].set_title('anchor')
+    axes[0][1].set_title('pos')
+    axes[0][2].set_title('neg')
+
+    for row,ax in enumerate(axes):
+        ax[0].imshow(x[row], cmap="gray")
+        ax[0].axis("off")
+        
+        ax[1].imshow(y[row], cmap="gray")
+        ax[1].axis("off")
+        
+        ax[2].imshow(z[row], cmap="gray")
+        ax[2].axis("off")
+
+    if not os.path.exists('results'):
+        os.mkdir('results')
+
+    plt.savefig(f"results/sample_epoch_{epoch}.jpg", dpi=1200)
+    plt.close()

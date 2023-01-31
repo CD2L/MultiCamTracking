@@ -8,7 +8,6 @@ class SiameseModel(nn.Module):
         self.encoder = resnet50()
 
     def forward(self, anchor, pos, neg):
-        print(anchor.shape)
         in_anc = self.encoder(anchor)
         in_pos = self.encoder(pos)
         in_neg = self.encoder(neg)

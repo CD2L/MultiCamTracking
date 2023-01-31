@@ -3,7 +3,7 @@ import yaml
 from torch import nn
 from src.model import SiameseModel
 from src.dataset import ImageDataset
-from src.utils import train_test_split, train, test, triplet_loss
+from src.utils import train_test_split, train, test, triplet_loss, save_example
 
 def main():
     torch.cuda.empty_cache()
@@ -12,7 +12,6 @@ def main():
         args = yaml.safe_load(f)
 
     show_sample = True
-    dtype = torch.float
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     dataset = ImageDataset(args['dataset_path'])
@@ -33,6 +32,16 @@ def main():
 
         loss_history["fit"].append(train_loss)
         loss_history["val"].append(test_loss)
+
+        if show_sample and not epoch % 2:
+            sample_loader = torch.utils.data.DataLoader(
+                dataset, batch_size=3, shuffle=True, num_workers=0
+            ) 
+
+            data_iter = iter(sample_loader)
+            x, y, z = next(data_iter)
+            
+            save_example(epoch, x, y ,z)
 
 if __name__ == '__main__':
     main()

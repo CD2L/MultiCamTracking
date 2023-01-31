@@ -2,3 +2,4 @@
 /yolo*
 bbox-saved.jpg
 __pycache__
+results/
