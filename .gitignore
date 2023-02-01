@@ -3,3 +3,6 @@
 bbox-saved.jpg
 __pycache__
 results/
+checkpoints/
+checkpoints-saved/
+runs/

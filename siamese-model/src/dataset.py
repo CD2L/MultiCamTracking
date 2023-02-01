@@ -14,9 +14,10 @@ class ImageDataset(Dataset):
         self.transforms = transforms.Compose([
             transforms.ToPILImage(),
             transforms.RandomHorizontalFlip(),
-            transforms.TrivialAugmentWide(),
-            transforms.RandomPerspective(distortion_scale=0.04, p=0.4, fill=255),
-            transforms.RandomPosterize(bits=3),
+            transforms.RandomPerspective(distortion_scale=0.1, p=0.3, fill=255),
+            transforms.RandomPosterize(bits=3,p=0.3),
+            transforms.RandomEqualize(0.2),
+            transforms.ColorJitter((0.5,1.2),(0.5,1.2),(0.5,1.2)),
             transforms.ToTensor(),
             transforms.RandomErasing(p=0.5, scale=(0.02, 0.3), ratio=(0.3, 3.33), value=(0,0,0)),
         ])  
