@@ -1,11 +1,22 @@
 # MultiCamTracking
+Unsupervised model for person Re Identification throught multiple camera
 
+This is repository is largerly inspired by "Unsupervised Pre-training for Person Re-identification (2021)"[1] paper.
 
+It aims to re-identify a person or a car through multiple camera thanks to an unsupervised siamese model trained on Market-1501[2]
+
+![Anchor compared to other images](./utils/siamese-model/siamese-test.png)
+
+## Metrics
+![Metrics](./utils/siamese-model/metrics.jpg)
 
 ## References
 <a id="1" href="
 https://doi.org/10.48550/arXiv.2012.03753">[1]</a> 
 <b>Unsupervised Pre-training for Person Re-identification (2021)</b><br>
-Dengpan Fu, Dongdong Chen, Jianmin Bao, Hao Yang, Lu Yuan, Lei Zhang, Houqiang Li, Dong Chen 
-<a href="
-https://doi.org/10.48550/arXiv.2012.03753">arXiv:2012.03753</a>
+Dengpan Fu, Dongdong Chen, Jianmin Bao, Hao Yang, Lu Yuan, Lei Zhang, Houqiang Li, Dong Chen<br>
+<a href="https://doi.org/10.48550/arXiv.2012.03753">arXiv:2012.03753</a>
+
+<a id="2" href="
+https://paperswithcode.com/dataset/market-1501">[1]</a> 
+<b>Market-1501</b>
