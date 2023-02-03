@@ -13,9 +13,6 @@ from torch.utils.tensorboard import SummaryWriter
 nb_logs = len(os.listdir('runs/siamese-network'))
 writer = SummaryWriter(f'runs/siamese-network/exp{nb_logs}')
 
-with open("args.yml", "r") as f:
-    args = yaml.safe_load(f)
-
 def distance(x, y):
     return torch.sum((x - y) ** 2, dim=1)
 
@@ -60,13 +57,16 @@ def train_test_split(dataset, train_size, batch_size, shuffle=True):
     )
 
 def train(epoch, model, loss_fn, dataloader, optimizer, device):
+    with open("args.yml", "r") as f:
+        args = yaml.safe_load(f)
+
     model.train()
     train_loss = 0.0
     
     for batch_idx, (anc, pos, neg) in enumerate(tqdm(dataloader)):
         anc, pos, neg = anc.to(device), pos.to(device), neg.to(device)
 
-        out_anc, out_pos, out_neg = model(anc, pos, neg)
+        out_anc, out_pos, out_neg = model(anc), model(pos), model(neg)
         optimizer.zero_grad()
         loss = loss_fn(out_anc, out_pos, out_neg).unsqueeze(0)
         loss.backward()
@@ -93,7 +93,7 @@ def test(model, loss_fn, dataloader, device, epoch):
         anc, pos, neg = anc.to(device), pos.to(device), neg.to(device)
 
         with torch.no_grad():
-            out = model(anc,pos,neg)
+            out = model(anc), model(pos), model(neg)
 
             loss = loss_fn(*out)
             test_loss += loss.item()
@@ -121,21 +121,21 @@ def save_example(epoch, x, y, z, similarity_y, similarity_z):
     axes[0][2].set_title('neg', pad=20)
 
     for row,ax in enumerate(axes):
-        ax[0].imshow(x[row], cmap="gray")
+        ax[0].imshow(x[row])
         ax[0].axis("off")
         
-        ax[1].imshow(y[row], cmap="gray")
+        ax[1].imshow(y[row])
         ax[1].text(12,0,'%.2f'%torch.sum(similarity_y[row]).item())
         ax[1].axis("off")
         
-        ax[2].imshow(z[row], cmap="gray")
+        ax[2].imshow(z[row])
         ax[2].text(12,0,'%.2f'%torch.sum(similarity_z[row]).item())
         ax[2].axis("off")   
 
     if not os.path.exists('results'):
         os.mkdir('results')
 
-    plt.savefig(f"results/sample_epoch_{epoch}.jpg", dpi=1200)
+    plt.savefig(f"results/sample_epoch_{epoch}.jpg", dpi=800)
     plt.close()
 
 if __name__ == '__main__':
@@ -147,4 +147,4 @@ if __name__ == '__main__':
     arr = arr.transpose(0,3,1,2)
 
     arr = torch.from_numpy(arr)
-    save_example('test',arr,arr,arr)
+    save_example('test', arr, arr, arr)
