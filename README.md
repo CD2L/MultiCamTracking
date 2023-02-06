@@ -1,11 +1,18 @@
 # MultiCamTracking
 Unsupervised model for person Re Identification throught multiple camera
 
-This is repository is largerly inspired by "Unsupervised Pre-training for Person Re-identification (2021)"[1] paper.
+This is repository is largerly inspired by <a href='#1'>"Unsupervised Pre-training for Person Re-identification (2021)"</a>[1] paper.
 
 It aims to re-identify a person or a car through multiple camera thanks to an unsupervised siamese model trained on Market-1501[2]
 
 ![Anchor compared to other images](./utils/siamese-model/siamese-test.png)
+
+# Get starting 
+## Training dataset
+To download the training dataset (<a href="#2">Market-1501</a>), use
+```bash
+curl https://www.kaggle.com/datasets/pengcw1/market-1501/download?datasetVersionNumber=1
+```
 
 ## Metrics
 ![Metrics](./utils/siamese-model/metrics.jpg)
@@ -18,5 +25,6 @@ Dengpan Fu, Dongdong Chen, Jianmin Bao, Hao Yang, Lu Yuan, Lei Zhang, Houqiang L
 <a href="https://doi.org/10.48550/arXiv.2012.03753">arXiv:2012.03753</a>
 
 <a id="2" href="
-https://paperswithcode.com/dataset/market-1501">[1]</a> 
-<b>Market-1501</b>
+https://paperswithcode.com/dataset/market-1501">[2]</a> 
+<b>Market-1501</b><br>
+<a href='https://www.kaggle.com/datasets/pengcw1/market-1501'>https://www.kaggle.com/datasets/pengcw1/market-1501</a>

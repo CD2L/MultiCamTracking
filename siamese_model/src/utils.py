@@ -10,6 +10,10 @@ from torch.utils.data.sampler import SubsetRandomSampler
 import cv2 as cv
 from torch.utils.tensorboard import SummaryWriter
 
+
+if not os.path.exists('runs/siamese-network'):
+    os.mkdir('./runs')
+    os.mkdir('./runs/siamese-network')
 nb_logs = len(os.listdir('runs/siamese-network'))
 writer = SummaryWriter(f'runs/siamese-network/exp{nb_logs}')
 

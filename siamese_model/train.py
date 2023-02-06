@@ -3,7 +3,7 @@ import yaml
 import os
 from torch import nn
 from src.model import SiameseModel
-from src.dataset import ImageDataset
+from src.dataset import ImageDataset, MultiAnglePersonDataset
 from src.utils import train_test_split, train, test, triplet_loss, save_example, distance, get_lr
 
 def main():
@@ -18,7 +18,7 @@ def main():
     show_sample = True
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    dataset = ImageDataset(args['dataset_path'])
+    dataset = MultiAnglePersonDataset(args['dataset_path'])
 
     train_dataset, test_dataset = train_test_split(dataset,0.8,args['batch_size'])
 
