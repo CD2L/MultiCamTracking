@@ -22,7 +22,7 @@ def main():
 
     train_dataset, test_dataset = train_test_split(dataset,0.8,args['batch_size'])
 
-    model = SiameseModel()
+    model = SiameseModel(partial_freeze=True)
     model = nn.DataParallel(model)
     model = model.to(device) 
 

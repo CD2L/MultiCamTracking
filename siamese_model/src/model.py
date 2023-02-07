@@ -4,9 +4,18 @@ from torchvision.models import resnet50
 import numpy as np
 
 class SiameseModel(nn.Module):
-    def __init__(self, parallele = False):
+    def __init__(self, parallele = False, partial_freeze = False):
         super().__init__()
-        self.encoder = resnet50()
+        self.encoder = resnet50(pretrained=True)
+
+        ct = 0
+        if partial_freeze:
+            for child in self.encoder.children():
+                ct += 1
+                if ct < 7:
+                    for param in child.parameters():
+                        param.requires_grad = False
+
         if parallele:
             self.encoder = nn.DataParallel(self.encoder)
 
