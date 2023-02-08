@@ -6,3 +6,4 @@ results/
 checkpoints/
 checkpoints-saved/
 runs/
+nohup.out

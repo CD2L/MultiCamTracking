@@ -80,7 +80,7 @@ def train(epoch, model, loss_fn, dataloader, optimizer, device):
             
     train_loss /= len(dataloader)
     writer.add_scalar('Loss/train', train_loss, epoch)
-    writer.add_scalar('lr', get_lr(optimizer), epoch)
+    writer.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch)
 
     print(
         f"train epoch {epoch}/{args['num_epochs']}",

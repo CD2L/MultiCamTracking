@@ -1,6 +1,7 @@
 dataset_path: ../Market-1501-v15.09.15/gt_bbox
-num_epochs: 200
-batch_size: 252
-lr: 0.0001
+num_epochs: 300
+batch_size: 250
+lr: 0.001
 model_checkpoints: 10
-sample_checkpoints: 4
+sample_checkpoints: 10
+pretrained: './checkpoints-saved/checkpoint_exp37_200.pkl'

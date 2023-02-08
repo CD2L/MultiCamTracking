@@ -22,17 +22,23 @@ def main():
 
     train_dataset, test_dataset = train_test_split(dataset,0.8,args['batch_size'])
 
-    model = SiameseModel(partial_freeze=True)
+    model = SiameseModel()
     model = nn.DataParallel(model)
     model = model.to(device) 
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=args['lr'], weight_decay=0.1)
+    if args["pretrained"]:
+        model.load_state_dict(torch.load(args['pretrained'])['model'])
+
+    optimizer = torch.optim.Adam(model.parameters(), lr=args['lr'])
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[50,200,200], gamma=0.1)
 
     loss_history = {"fit": [], "val": []}
 
     for epoch in range(1, args['num_epochs'] + 1):
         train_loss = train(epoch, model, triplet_loss, train_dataset, optimizer, device)
         test_loss = test(model, triplet_loss, test_dataset, device, epoch)
+
+        scheduler.step()
 
         loss_history["fit"].append(train_loss)
         loss_history["val"].append(test_loss)

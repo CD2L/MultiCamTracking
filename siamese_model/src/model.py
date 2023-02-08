@@ -6,7 +6,7 @@ import numpy as np
 class SiameseModel(nn.Module):
     def __init__(self, parallele = False, partial_freeze = False):
         super().__init__()
-        self.encoder = resnet50(pretrained=True)
+        self.encoder = resnet50(weights ='DEFAULT')            
 
         ct = 0
         if partial_freeze:
