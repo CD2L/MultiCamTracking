@@ -76,7 +76,7 @@ def main():
     yolo.conf = 0.35
     yolo.iou = 0.8
 
-    weights = torch.load('./siamese_model/checkpoints-saved/checkpoint_exp37_200.pkl')
+    weights = torch.load('./siamese_model/checkpoints-saved/checkpoint_exp43_300.pkl')
 
     model = SiameseModel()
     siamese = nn.DataParallel(model)
