@@ -1,5 +1,6 @@
 import math
 import numpy as np
+from numpy.linalg import norm
 from tqdm import tqdm
 import yaml
 import os
@@ -10,15 +11,17 @@ from torch.utils.data.sampler import SubsetRandomSampler
 import cv2 as cv
 from torch.utils.tensorboard import SummaryWriter
 
-
 if not os.path.exists('runs/siamese-network'):
     os.mkdir('./runs')
     os.mkdir('./runs/siamese-network')
 nb_logs = len(os.listdir('runs/siamese-network'))
 writer = SummaryWriter(f'runs/siamese-network/exp{nb_logs}')
 
-def distance(x, y):
-    return torch.sum((x - y) ** 2, dim=1)
+def distance(x, y, type='euclidian'):
+    if type == 'euclidian':
+        return torch.sum((x - y) ** 2, dim=1)
+    elif type == 'cosine':
+        return np.dot(x,y)/(norm(x)*norm(y))
 
 def triplet_loss(anchor, positive, negative, margin=1.0):
     """
@@ -39,6 +42,7 @@ def get_lr(optimizer):
         return param_group['lr']
 
 def train_test_split(dataset, train_size, batch_size, shuffle=True):
+    
     dataset_size = len(dataset)
     indices = list(range(dataset_size))
     split = int(math.floor(train_size * dataset_size))
