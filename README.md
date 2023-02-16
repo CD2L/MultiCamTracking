@@ -14,6 +14,8 @@ The pipeline is composed with 4 main steps:
 - Tracking using StrongSORT
 - Similarity between the reference and every person detected in the other video
 
+![MultiCamTracking Diagram](./utils/MultiCamTracking.png)
+
 ## Get starting 
 ### Training dataset
 To download the training dataset (<a href="#2">Market-1501</a>), use
