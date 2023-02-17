@@ -17,7 +17,7 @@ parser.add_argument('-n', '--n-samples', type=int, default=3)
 parser.add_argument('-s', '--stride', type=int, default=3)
 
 TEMP_PFOLDER = '.temp/exp/crops/person/'
-DSIZE = (320,640)
+DSIZE = (224,224)
 
 torch.no_grad()
 
@@ -53,18 +53,19 @@ def main(opt):
     
 
     # Similarity model
-    model = SiameseModel()
-    rn101 = nn.DataParallel(model)
-    rn101 = rn101.to('cuda')
+    # model = SMResNet101()
+    # rn101 = nn.DataParallel(model)
+    # rn101 = rn101.to('cuda')
 
-    rn101.load_state_dict(torch.load('./siamese_model/checkpoints-saved/checkpoint_exp43_300.pkl')['model'])
+    # rn101.load_state_dict(torch.load('./siamese_model/checkpoints-saved/checkpoint_rn101_400.pkl')['model'])
 
     # load the model
-    # model = MCT_VGG16()
+    model = MCT_VGG16()
+    rn101 = model
 
     ref_preprocessed = np.expand_dims(ref_img, 0)
     ref_preprocessed = model.preprocessing(ref_preprocessed)
-    ref_tensor = rn101(ref_preprocessed).detach().cpu()
+    ref_tensor = torch.from_numpy(rn101(ref_preprocessed))
 
     # Calcul average similarity for each person
     means = []
@@ -81,7 +82,7 @@ def main(opt):
 
         distance_res = []
         for img_tensor in img_batch_tensors:
-            distance_res.append(distance(ref_tensor,img_tensor.detach().cpu(), type='euclidian').item())
+            distance_res.append(distance(ref_tensor, torch.from_numpy(img_tensor), type='cosine').item())
             if distance_res[-1] < min_val:
                 min_val = distance_res[-1]
                 min_idx = batch_idx
