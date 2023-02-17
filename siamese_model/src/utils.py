@@ -17,8 +17,11 @@ if not os.path.exists('runs/siamese-network'):
 nb_logs = len(os.listdir('runs/siamese-network'))
 writer = SummaryWriter(f'runs/siamese-network/exp{nb_logs}')
 
-def distance(x, y):
-    return torch.sum((x - y) ** 2, dim=1)
+def distance(x, y, type='euclidian'):
+    if type == 'euclidian':
+        return torch.sum((x - y) ** 2, dim=1)
+    elif type == 'cosine':
+        return 1 - (np.dot(x,y)/(norm(x)*norm(y)))
 
 def triplet_loss(anchor, positive, negative, margin=1.0):
     """
