@@ -17,6 +17,13 @@ The pipeline is composed with 4 main steps:
 ![MultiCamTracking Diagram](./utils/MultiCamTracking.png)
 
 ## Get starting 
+
+### Yolov8
+Clone mikel-brostrom/yolov8_tracking repository
+```
+git clone https://github.com/mikel-brostrom/yolov8_tracking
+```
+
 ### Training dataset
 To download the training dataset (<a href="#2">Market-1501</a>), use
 ```bash
