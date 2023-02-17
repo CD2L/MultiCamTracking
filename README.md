@@ -23,29 +23,41 @@ To download the training dataset (<a href="#2">Market-1501</a>), use
 curl https://www.kaggle.com/datasets/pengcw1/market-1501/download?datasetVersionNumber=1
 ```
 
+### torchereid pretrained models
+To download pretrained weights : https://kaiyangzhou.github.io/deep-person-reid/MODEL_ZOO
+
+Then change 
+```python
+torchereidModels(name='<name>', weights='<path>')
+```
+with your desired name and path
+
 ## Metrics
 ![Metrics](./utils/siamese-model/metrics.jpg)
 
 ## References
-<a id="1" href="
-https://doi.org/10.48550/arXiv.2012.03753">[1]</a> 
+<a id="1" href="https://doi.org/10.48550/arXiv.2012.03753">[1]</a> 
 <b>Unsupervised Pre-training for Person Re-identification (2021)</b><br>
 Dengpan Fu, Dongdong Chen, Jianmin Bao, Hao Yang, Lu Yuan, Lei Zhang, Houqiang Li, Dong Chen<br>
 <a href="https://doi.org/10.48550/arXiv.2012.03753">arXiv:2012.03753</a>
 
-<a id="2" href="
-https://paperswithcode.com/dataset/market-1501">[2]</a> 
+<a id="2" href="https://paperswithcode.com/dataset/market-1501">[2]</a> 
 <b>Market-1501</b><br>
 <a href='https://www.kaggle.com/datasets/pengcw1/market-1501'>https://www.kaggle.com/datasets/pengcw1/market-1501</a>
 
-<a id="3" href="
-https://github.com/mikel-brostrom/yolov8_tracking">[3]</a> 
+<a id="3" href="https://github.com/mikel-brostrom/yolov8_tracking">[3]</a> 
 <b>yolov8_tracking</b><br>
 mikel-brostrom<br>
 <a href='https://github.com/mikel-brostrom/yolov8_tracking'>https://github.com/mikel-brostrom/yolov8_tracking</a>
 
-<a id="4" href="
-https://arxiv.org/abs/2202.13514">[4]</a> 
+<a id="4" href="https://arxiv.org/abs/2202.13514">[4]</a> 
 <b>StrongSORT: Make DeepSORT Great Again</b><br>
 Yunhao Du, Yang Song, Bo Yang, and Yanyun Zhao<br>
 <a href='https://arxiv.org/abs/2202.13514'>arXiv:2202.13514</a>
+
+<a id="5" href="https://github.com/KaiyangZhou/deep-person-reid">[5]</a> 
+<b>deep-person-reid</b><br>
+Kaiyang Zhou<br>
+<a href='https://github.com/KaiyangZhou/deep-person-reid'>https://github.com/KaiyangZhou/deep-person-reid</a>
+
+

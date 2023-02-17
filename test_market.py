@@ -1,20 +1,55 @@
 # IMPORTS
 import torch
 import os 
+import matplotlib.pyplot as plt
 import cv2 as cv
-from siamese_model.src.model import SiameseModel
+from siamese_model.src.model import SiameseModel, SMResNet101, torchereidModels
 from siamese_model.src.utils import distance
 from torch import nn
 from tqdm import tqdm
 import numpy as np
+from prettytable import PrettyTable
+
+def print_metrics(pre, pos_lst, neg_lst):
+    table = PrettyTable()
+
+    table.field_names = ['Precision',
+                         'Min dist. (+)',
+                         'Mean dist. (+)',
+                         'Max dist. (+)',
+                         'Min dist. (-)',
+                         'Mean dist. (-)',
+                         'Max dist. (-)',
+                        ]
+    
+    table.add_row([
+        '%0.2f'%pre, 
+        '%0.2f'%np.min(pos_lst),
+        '%0.2f'%np.mean(pos_lst), 
+        '%0.2f'%np.max(pos_lst),
+        '%0.2f'%np.min(neg_lst),
+        '%0.2f'%np.mean(neg_lst), 
+        '%0.2f'%np.max(neg_lst),
+        ])
+    
+    print(table)
 
 def main():
     
     accuracy = 0
+
+    distance_pos_lst = []
     distance_mean_pos = 0
     nb_pos = 0
+    min_pos = 0
+    max_pos = 0
+
+    distance_neg_lst = []
     distance_mean_neg = 0
     nb_neg = 0
+    min_neg = 0
+    max_neg = 0
+
 
     # Preparation
     query = os.listdir('./Market-1501-v15.09.15/query')
@@ -68,17 +103,10 @@ def main():
             validation_img.append(img)
 
     # Tests
-    model = SiameseModel()
-    sm = nn.DataParallel(model)
-    sm = sm.to('cuda')
-    
-    sm.load_state_dict(torch.load('./siamese_model/checkpoints-saved/checkpoint_exp37_200.pkl')['model'])
+    model = torchereidModels(weights='./siamese_model/checkpoints-saved/osnet_ain_x1_0_msmt17_256x128_amsgrad_ep50_lr0.0015_coslr_b64_fb10_softmax_labsmth_flip_jitter.pth')
 
-    anchor_img = model.preprocessing(np.array(anchor_img, np.float32))
-    validation_img = model.preprocessing(np.array(validation_img, np.float32))
-
-    tensor_anchors = sm(anchor_img)
-    tensor_val = sm(validation_img)
+    tensor_anchors = model(anchor_img)
+    tensor_val = model(validation_img)
     
     for anchor_idx, anchor in enumerate(tqdm(anchors)):
         character_idx = anchor.split('_')[0]
@@ -94,11 +122,14 @@ def main():
         if validation_data[idx].startswith(character_idx):
             accuracy += 1
             distance_mean_pos += distance_res[idx]
+            distance_pos_lst.append(distance_res[idx])
             nb_pos += 1
+            
         
         for idx_res, res in enumerate(distance_res):
             if idx_res != idx:
                 distance_mean_neg += res
+                distance_neg_lst.append(res)
                 nb_neg += 1
 
     accuracy /= len(anchors)
@@ -106,10 +137,7 @@ def main():
     distance_mean_neg /= nb_neg
 
     print('\n')
-    print('Accuracy', accuracy)
-    print('Distance (+)', distance_mean_pos)
-    print('Distance (-)', distance_mean_neg)
-
+    print_metrics(accuracy, distance_pos_lst, distance_neg_lst)
 
 if __name__ == '__main__':
     main()

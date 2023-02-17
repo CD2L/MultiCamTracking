@@ -2,8 +2,8 @@ import os
 from argparse import ArgumentParser
 import cv2 as cv
 import random
-from siamese_model.src.model import SiameseModel, SMResNet101
 from siamese_model.src.utils import distance
+from siamese_model.src.model import SiameseModel, SMResNet101, torchereidModels
 import torch
 from torch import nn
 import numpy as np
@@ -52,15 +52,9 @@ def main(opt):
     
 
     # Similarity model
-    model = SMResNet101()
-    rn101 = nn.DataParallel(model)
-    rn101 = rn101.to('cuda')
-
-    rn101.load_state_dict(torch.load('./siamese_model/checkpoints-saved/checkpoint_rn101_400.pkl')['model'])
+    extractor = torchereidModels(weights='./siamese_model/checkpoints-saved/osnet_ain_x1_0_msmt17_256x128_amsgrad_ep50_lr0.0015_coslr_b64_fb10_softmax_labsmth_flip_jitter.pth')
     
-    ref_preprocessed = np.expand_dims(ref_img, 0)
-    ref_preprocessed = model.preprocessing(ref_preprocessed)
-    ref_tensor = rn101(ref_preprocessed)
+    ref_tensor = extractor(ref_img)
 
     # Calcul average similarity for each person
     means = []
@@ -68,13 +62,13 @@ def main(opt):
     min_idx = -1
 
     for  batch_idx, img_batch in enumerate(imgs):
-        img_batch = np.array(img_batch, dtype='float32')
-        img_batch_preprocessed = model.preprocessing(img_batch)
-        img_batch_tensors = rn101(img_batch_preprocessed)
+        img_batch = np.array(img_batch)
 
         distance_res = []
-        for img_tensor in img_batch_tensors:
-            distance_res.append(distance(ref_tensor,img_tensor).item())
+        for img_tensor in img_batch:
+            img_ten = extractor(img_tensor)
+            
+            distance_res.append(distance(ref_tensor,img_ten).item())
             if distance_res[-1] < min_val:
                 min_val = distance_res[-1]
                 min_idx = batch_idx
@@ -95,13 +89,6 @@ def main(opt):
     cv.imwrite('result-mean.jpg', cv.cvtColor(imgs[idx][0], cv.COLOR_RGB2BGR))
     cv.imwrite('result-min.jpg', cv.cvtColor(imgs[min_idx][0], cv.COLOR_RGB2BGR))
 
-
-
-        
-
-            
-            
-            
 
 if __name__ == '__main__':
     opt = parser.parse_args()    
