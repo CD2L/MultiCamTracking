@@ -4,9 +4,8 @@ import matplotlib.pyplot as plt
 import cv2 as cv
 import random
 from siamese_model.src.utils import distance
-from siamese_model.src.model import SiameseModel, SMResNet101, torchereidModels
+from siamese_model.src.model import SiameseModel, SMResNet101, REID
 import torch
-from torch import nn
 import numpy as np
 import shutil
 from time import time 
@@ -17,6 +16,7 @@ parser.add_argument('-r', '--ref', type=str)
 parser.add_argument('-i', '--image', type=str)
 parser.add_argument('-n', '--n-samples', type=int, default=3)
 parser.add_argument('-s', '--stride', type=int, default=3)
+parser.add_argument('-c', '--cache', type=bool, default=False)
 
 TEMP_PFOLDER = '.temp/'
 
@@ -42,10 +42,10 @@ def extract_persons(folder: str, n_samples: int = 3, encoder = None):
             im = cv.cvtColor(im, cv.COLOR_BGR2RGB)
             im = cv.resize(im, (200,400))
             img_batch.append(im)
-            if encoder is not None:
-                im = encoder(im).squeeze().float().cpu()
-            img_batch_enc.append(im)
-                           
+
+        if encoder is not None:
+            img_batch_enc = encoder._features(img_batch)
+
         imgs.append(img_batch)
         imgs_enc.append(img_batch_enc)
     return imgs_enc, imgs
@@ -67,43 +67,35 @@ def print_imgs(im_1, im_2, distance):
     plt.savefig('similarity.jpeg')
 
 def main(opt):
-    # ref_img = cv.imread(opt['ref'], cv.IMREAD_ANYCOLOR)
-    # ref_img = cv.cvtColor(ref_img, cv.COLOR_BGR2RGB)
-    # ref_img = cv.resize(ref_img, (200,400))
-
     # Similarity model
-    extractor = torchereidModels(weights='./siamese_model/checkpoints-saved/osnet_ain_x1_0_msmt17_256x128_amsgrad_ep50_lr0.0015_coslr_b64_fb10_softmax_labsmth_flip_jitter.pth')
+    reid = REID()
+    
+    if not os.path.exists('.temp') or not opt['cache']:
+        # YoloV8 detection
+        print('Video #1')
+        start = time()
+        os.system(f'python ./yolov8_tracking/track.py --source {opt["image"]} --save-crop --project .temp --name v1 --vid-stride {opt["stride"]}')
+        print('%.2f'%(time()-start), 's')
 
-    # YoloV8 detection
-    print('Video #1')
+        print('Video #2')
+        start = time()
+        os.system(f'python ./yolov8_tracking/track.py --source {opt["ref"]} --save-crop --project .temp --name v2 --vid-stride {opt["stride"]}')
+        print('%.2f'%(time()-start), 's')
+
     start = time()
-    os.system(f'python ./yolov8_tracking/track.py --source {opt["image"]} --save-crop --project .temp --name v1 --vid-stride {opt["stride"]}')
+    imgs_v1_enc, imgs_v1 = extract_persons(os.path.join(TEMP_PFOLDER, 'v1/crops/person'), opt['n_samples'], reid)
+    imgs_v2_enc, imgs_v2 = extract_persons(os.path.join(TEMP_PFOLDER, 'v2/crops/person'), opt['n_samples'], reid)    
     print('%.2f'%(time()-start), 's')
 
-    print('Video #2')
-    start = time()
-    os.system(f'python ./yolov8_tracking/track.py --source {opt["ref"]} --save-crop --project .temp --name v2 --vid-stride {opt["stride"]}')
-    print('%.2f'%(time()-start), 's')
-
-    start = time()
-    imgs_v1_enc, imgs_v1 = extract_persons(os.path.join(TEMP_PFOLDER, 'v1/crops/person'), opt['n_samples'], extractor)
-    imgs_v2_enc, imgs_v2 = extract_persons(os.path.join(TEMP_PFOLDER, 'v2/crops/person'), opt['n_samples'], extractor)    
-    print('%.2f'%(time()-start), 's')
-
-    shutil.rmtree('.temp')
+    if not opt['cache']:
+        shutil.rmtree('.temp')
     
     # Calcul average similarity for each person
     distances = []
     for batch_idx, img1_batch in enumerate(imgs_v1_enc):
-        img1_mean = torch.mean(torch.stack(img1_batch), 0)
-        img1_mean = img1_mean[None, :]
-
         distance_res = []
-        for batch2_idx, img2_batch in enumerate(imgs_v2_enc):            
-            img2_mean = torch.mean(torch.stack(img2_batch), 0)
-            img2_mean = img2_mean[None, :]
-
-            distance_res.append(distance(img1_mean, img2_mean).item())
+        for batch2_idx, img2_batch in enumerate(imgs_v2_enc):  
+            distance_res.append(np.mean(reid.compute_distance(img1_batch, img2_batch)))
         
         distances.append(distance_res)
 
@@ -112,11 +104,9 @@ def main(opt):
     imgs_v2_f = []
 
     for idx ,dist_val in enumerate(distances):
-        print(distances)
-        print(dist_val)
         if np.min(dist_val) < 300:
             imgs_v1_f.append(imgs_v1[idx][0])
-            imgs_v2_f.append(imgs_v2[idx][0])
+            imgs_v2_f.append(imgs_v2[np.argmin(dist_val)][0])
             dist.append(np.min(dist_val))
 
     # print('--------------------')
