@@ -67,4 +67,7 @@ Yunhao Du, Yang Song, Bo Yang, and Yanyun Zhao<br>
 Kaiyang Zhou<br>
 <a href='https://github.com/KaiyangZhou/deep-person-reid'>https://github.com/KaiyangZhou/deep-person-reid</a>
 
-
+[[6]](https://github.com/samihormi/Multi-Camera-Person-Tracking-and-Re-Identification)
+<b>Multi-Camera-Person-Tracking-and-Re-Identification</b><br>
+samihormi<br>
+https://github.com/samihormi/Multi-Camera-Person-Tracking-and-Re-Identification
