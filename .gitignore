@@ -7,3 +7,5 @@ checkpoints/
 checkpoints-saved/
 runs/
 nohup.out
+*.mp4
+*.pth

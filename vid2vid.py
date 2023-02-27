@@ -17,8 +17,11 @@ parser.add_argument('-i', '--image', type=str)
 parser.add_argument('-n', '--n-samples', type=int, default=3)
 parser.add_argument('-s', '--stride', type=int, default=3)
 parser.add_argument('-c', '--cache', type=bool, default=False)
+parser.add_argument('--weights', type=str, default=None)
+parser.add_argument('--model', type=str, default='osnet_ain_x1_0')
+parser.add_argument('-t', '--threshold', type=int, default=600)
 
-TEMP_PFOLDER = '.temp/')
+TEMP_PFOLDER = '.temp/'
 
 torch.no_grad()
 
@@ -51,7 +54,7 @@ def extract_persons(folder: str, n_samples: int = 3, encoder = None):
     return imgs_enc, imgs
 
 def print_imgs(im_1, im_2, distance):
-    fig, axes = plt.subplots(nrows=max(len(im_1), 2), ncols=3, figsize=(5,8)) 
+    fig, axes = plt.subplots(nrows=max(len(im_1), 2), ncols=3, figsize=(5,20)) 
     fig.tight_layout()
     for row, im in enumerate(im_1):
         ax = axes[row]
@@ -68,7 +71,7 @@ def print_imgs(im_1, im_2, distance):
 
 def main(opt):
     # Similarity model
-    reid = REID('osnet_ain_x1_0','./siamese_model/checkpoints-saved/osnet_ain_x1_0_msmt17.pth')
+    reid = REID(opt['model'],opt['weights'])
     
     if not os.path.exists('.temp') or not opt['cache']:
         # YoloV8 detection
@@ -92,9 +95,9 @@ def main(opt):
     
     # Calcul average similarity for each person
     distances = []
-    for batch_idx, img1_batch in enumerate(imgs_v1_enc):
+    for img1_batch in imgs_v1_enc:
         distance_res = []
-        for batch2_idx, img2_batch in enumerate(imgs_v2_enc):  
+        for img2_batch in imgs_v2_enc:  
             distance_res.append(np.mean(reid.compute_distance(img1_batch, img2_batch)))
         
         distances.append(distance_res)
@@ -104,7 +107,7 @@ def main(opt):
     imgs_v2_f = []
 
     for idx ,dist_val in enumerate(distances):
-        if np.min(dist_val) < 300:
+        if np.min(dist_val) < opt['threshold']:
             imgs_v1_f.append(imgs_v1[idx][0])
             imgs_v2_f.append(imgs_v2[np.argmin(dist_val)][0])
             dist.append(np.min(dist_val))
