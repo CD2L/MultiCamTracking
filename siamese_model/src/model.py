@@ -57,20 +57,8 @@ class SMResNet101(BaseModel):
 
         if parallele:
             self.encoder = nn.DataParallel(self.encoder)
-
-class torchereidModels():
-    def __init__(self, name='osnet_ain_x1_0', weights = None) -> None:
-        self.encoder = FeatureExtractor(
-            model_name=name,
-            model_path=weights,
-            device='cuda'
-        )
-
-    def __call__(self, x):
-        return self.encoder(x)
-
 class REID:
-    def __init__(self, model:str = 'resnet50', weights:str = None, loss:str = 'softmax'):
+    def __init__(self, model:str = 'resnet50', weights:str = None, loss:str = 'softmax', dist_metric = 'euclidean'):
         self.use_gpu = torch.cuda.is_available()
         self.model = torchreid.models.build_model(
             name=model,
@@ -90,7 +78,7 @@ class REID:
                 color_jitter=False,
                 color_aug=False
             )
-        self.dist_metric = 'euclidean'
+        self.dist_metric = dist_metric
         self.model.eval()
 
     def _extract_features(self, input):
@@ -106,7 +94,7 @@ class REID:
             if self.use_gpu:
                 img = img.cuda()
             features = self._extract_features(img)
-            features = features.data.cpu()  # tensor shape=1x2048
+            features = features.data.cpu()
             f.append(features)
         f = torch.cat(f, 0)
         return f
