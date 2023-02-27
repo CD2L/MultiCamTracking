@@ -70,17 +70,17 @@ class torchereidModels():
         return self.encoder(x)
 
 class REID:
-    def __init__(self):
+    def __init__(self, model:str = 'resnet50', weights:str = None, loss:str = 'softmax'):
         self.use_gpu = torch.cuda.is_available()
         self.model = torchreid.models.build_model(
-            name='resnet50',
+            name=model,
             num_classes=1,  # human
-            loss='softmax',
+            loss=loss,
             pretrained=True,
             use_gpu=self.use_gpu
         )
-
-        torchreid.utils.load_pretrained_weights(self.model, 'siamese_model/checkpoints-saved/model.pth')
+        if weights is not None:
+            torchreid.utils.load_pretrained_weights(self.model, weights)
 
         if self.use_gpu:
             self.model = self.model.cuda()

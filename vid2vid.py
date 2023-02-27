@@ -18,7 +18,7 @@ parser.add_argument('-n', '--n-samples', type=int, default=3)
 parser.add_argument('-s', '--stride', type=int, default=3)
 parser.add_argument('-c', '--cache', type=bool, default=False)
 
-TEMP_PFOLDER = '.temp/'
+TEMP_PFOLDER = '.temp/')
 
 torch.no_grad()
 
@@ -68,7 +68,7 @@ def print_imgs(im_1, im_2, distance):
 
 def main(opt):
     # Similarity model
-    reid = REID()
+    reid = REID('osnet_ain_x1_0','./siamese_model/checkpoints-saved/osnet_ain_x1_0_msmt17.pth')
     
     if not os.path.exists('.temp') or not opt['cache']:
         # YoloV8 detection
@@ -109,20 +109,10 @@ def main(opt):
             imgs_v2_f.append(imgs_v2[np.argmin(dist_val)][0])
             dist.append(np.min(dist_val))
 
-    # print('--------------------')
-    # print('Folder ID (mean):',idx+1)
-    # print('Val (mean):','%0.2f'%means[idx])
-    # print('Folder ID (min):', min_idx+1)
-    # print('Val (min):','%0.2f'%min_val)
-    
     imgs_v2 = np.array([batch[0] for batch in imgs_v2])
 
     print('Nb persons detected:', len(dist))
     print_imgs(imgs_v1_f, imgs_v2_f, dist)
-
-    # cv.imwrite('result-mean.jpg', cv.cvtColor(imgs[idx][0], cv.COLOR_RGB2BGR))
-    # cv.imwrite('result-min.jpg', cv.cvtColor(imgs[min_idx][0], cv.COLOR_RGB2BGR))
-
 
 if __name__ == '__main__':
     opt = parser.parse_args()    

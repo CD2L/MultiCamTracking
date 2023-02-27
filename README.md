@@ -39,9 +39,6 @@ torchereidModels(name='<name>', weights='<path>')
 ```
 with your desired name and path
 
-## Metrics
-![Metrics](./utils/siamese-model/metrics.jpg)
-
 ## References
 <a id="1" href="https://doi.org/10.48550/arXiv.2012.03753">[1]</a> 
 <b>Unsupervised Pre-training for Person Re-identification (2021)</b><br>
