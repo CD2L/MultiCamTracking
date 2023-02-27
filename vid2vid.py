@@ -19,13 +19,14 @@ parser.add_argument('-s', '--stride', type=int, default=3)
 parser.add_argument('-c', '--cache', type=bool, default=False)
 parser.add_argument('--weights', type=str, default=None)
 parser.add_argument('--model', type=str, default='osnet_ain_x1_0')
-parser.add_argument('-t', '--threshold', type=int, default=600)
+parser.add_argument('-t', '--threshold', type=float, default=600)
+parser.add_argument('-v', '--verbose', type=bool, default=True)
 
 TEMP_PFOLDER = '.temp/'
 
 torch.no_grad()
 
-def extract_persons(folder: str, n_samples: int = 3, encoder = None):
+def extract_persons(folder: str, n_samples: int = 3, encoder:REID = None):
     persons = os.listdir(folder)
     print('Nb persons', len(persons))
 
@@ -71,7 +72,7 @@ def print_imgs(im_1, im_2, distance):
 
 def main(opt):
     # Similarity model
-    reid = REID(opt['model'],opt['weights'])
+    reid = REID(opt['model'], opt['weights'], dist_metric='cosine')
     
     if not os.path.exists('.temp') or not opt['cache']:
         # YoloV8 detection
@@ -105,17 +106,31 @@ def main(opt):
     dist = []
     imgs_v1_f = []
     imgs_v2_f = []
+    corres = []
 
     for idx ,dist_val in enumerate(distances):
+        # Preventing from returning an already reidentified person
+        dist_val = [val if id not in [i for _,i in corres] else 99999 for id, val in enumerate(dist_val)]
+        min_idx = np.argmin(dist_val)
+        
         if np.min(dist_val) < opt['threshold']:
+            corres.append((idx, np.argmin(dist_val)))
             imgs_v1_f.append(imgs_v1[idx][0])
-            imgs_v2_f.append(imgs_v2[np.argmin(dist_val)][0])
+            imgs_v2_f.append(imgs_v2[min_idx][0])
             dist.append(np.min(dist_val))
 
     imgs_v2 = np.array([batch[0] for batch in imgs_v2])
 
-    print('Nb persons detected:', len(dist))
-    print_imgs(imgs_v1_f, imgs_v2_f, dist)
+    if opt['verbose']:
+        # Printing time !
+        print('Nb persons detected:', len(dist))
+        print('--Correspondance--')
+        print('v1 , v2')
+        for idx_1, idx_2 in corres:
+            print(idx_1,',',idx_2)
+        print_imgs(imgs_v1_f, imgs_v2_f, dist)
+
+    return corres
 
 if __name__ == '__main__':
     opt = parser.parse_args()    
