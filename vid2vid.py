@@ -32,9 +32,11 @@ def extract_persons(folder: str, n_samples: int = 3, encoder:REID = None):
     print('Nb persons', len(persons))
 
     imgs = []    
-    imgs_enc = []    
+    imgs_enc = []  
+    ids = []
     for pfolder_path in persons:
         pfolder = os.listdir(os.path.join(folder, pfolder_path))
+        ids.append(int(pfolder_path))
 
         n_samples = min(n_samples, len(pfolder))
 
@@ -53,7 +55,7 @@ def extract_persons(folder: str, n_samples: int = 3, encoder:REID = None):
 
         imgs.append(img_batch)
         imgs_enc.append(img_batch_enc)
-    return imgs_enc, imgs
+    return imgs_enc, imgs, ids
 
 def print_imgs(im_1, im_2, distance):
     fig, axes = plt.subplots(nrows=max(len(im_1), 2), ncols=3, figsize=(5,20)) 
@@ -135,7 +137,13 @@ def count_frames(video_path):
 
 def video_tracking(video_path, tracking: dict, stride = 1, corres:dict = None):
     cap = cv.VideoCapture(video_path)
-    output = cv.VideoWriter('v2_output.mp4', cv.VideoWriter_fourcc(*'MP4V'), 30, (720, 1080))
+
+    frame_width = int(cap.get(3))
+    frame_height = int(cap.get(4))
+    
+    size = (frame_width, frame_height)
+
+    output = cv.VideoWriter('v2_output.avi', cv.VideoWriter_fourcc(*'MJPG'), 30, size)
 
     for _, tracks in tracking.items():
             ret, frame = cap.read()
@@ -150,17 +158,17 @@ def video_tracking(video_path, tracking: dict, stride = 1, corres:dict = None):
                         if corres is not None:
                             id = corres[int(bbox[0])]
                         cv.putText(frame, str(id), (bbox[1], bbox[2]-15), cv.FONT_HERSHEY_SIMPLEX, 1, color=(0,255,0), thickness=2)
-
-                sleep(0.02)
+                    else:
+                        cv.rectangle(frame,
+                            (bbox[1], bbox[2]),
+                            (bbox[1]+bbox[3], bbox[2]+bbox[4]), 
+                            (0, 0, 255), 2)
+                        cv.putText(frame, str(bbox[0]), (bbox[1], bbox[2]-15), cv.FONT_HERSHEY_SIMPLEX, 1, color=(0,0,255), thickness=2)
                 output.write(frame)
 
-                cv.imshow("output", frame)
-                if cv.waitKey(1) & 0xFF == ord('s'):
-                    break
             else:
                 break
 
-    cv.destroyAllWindows()
     output.release()
     cap.release()
 
@@ -173,21 +181,21 @@ def main(opt):
         # YoloV8 detection and tracking
         print('Video #1')
         start = time()
-        os.system(f'python ./yolov8_tracking/track.py --source {opt["image"]} --save-crop --save-txt --project .temp --name v1 --vid-stride {opt["stride"]} --tracking-method strongsort')
+        os.system(f'python ./yolov8_tracking/track.py --save-vid --source {opt["ref"]} --save-crop --project .temp --name v1 --vid-stride {opt["stride"]}')
         print('%.2f'%(time()-start), 's')
 
         print('Video #2')
         start = time()
-        os.system(f'python ./yolov8_tracking/track.py --save-vid --source {opt["ref"]} --save-crop --project .temp --name v2 --vid-stride {opt["stride"]} --tracking-method strongsort')
+        os.system(f'python ./yolov8_tracking/track.py --source {opt["image"]} --save-crop --save-txt --project .temp --name v2 --vid-stride {opt["stride"]} ')
         print('%.2f'%(time()-start), 's')
 
     start = time()
-    imgs_v1_enc, imgs_v1 = extract_persons(os.path.join(TEMP_PFOLDER, 'v1/crops/person'), opt['n_samples'], reid)
-    imgs_v2_enc, imgs_v2 = extract_persons(os.path.join(TEMP_PFOLDER, 'v2/crops/person'), opt['n_samples'], reid)    
+    imgs_v1_enc, imgs_v1, id_v1 = extract_persons(os.path.join(TEMP_PFOLDER, 'v1/crops/person'), opt['n_samples'], reid)
+    imgs_v2_enc, imgs_v2, id_v2 = extract_persons(os.path.join(TEMP_PFOLDER, 'v2/crops/person'), opt['n_samples'], reid)    
     print('%.2f'%(time()-start), 's')
 
 
-    txt_file = os.path.join(TEMP_PFOLDER, 'v1/tracks/', opt['image'].split('\\')[-1].split('.')[0]+'.txt')
+    txt_file = os.path.join(TEMP_PFOLDER, 'v2/tracks/', opt['image'].split('/')[-1].split('.')[0]+'.txt')
     tracks = []
     # Keep the tracks file 
     with open(txt_file, 'r') as f:
@@ -224,11 +232,11 @@ def main(opt):
 
     for idx ,dist_val in enumerate(distances):
         # Preventing from returning an already reidentified person
-        dist_val = [val if id not in corres else 99999 for id, val in enumerate(dist_val)]
+        # dist_val = [val if id not in corres else 99999 for id, val in enumerate(dist_val)]
         min_idx = np.argmin(dist_val)
         
         if np.min(dist_val) < opt['threshold']:
-            corres[np.argmin(dist_val)] = idx
+            corres[id_v2[np.argmin(dist_val)]] = id_v1[idx]
             imgs_v1_f.append(imgs_v1[idx][0])
             imgs_v2_f.append(imgs_v2[min_idx][0])
             dist.append(np.min(dist_val))
